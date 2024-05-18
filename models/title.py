@@ -69,7 +69,7 @@ class Title(Base):
     def validate_year(self, key, value):
         current_year = datetime.now().year
         if value > current_year:
-            raise ValueError("Year cant be more that current year")
+            raise ValueError("Year cant be more than current year")
         return value
 
 
