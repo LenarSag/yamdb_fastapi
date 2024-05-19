@@ -10,6 +10,9 @@ class UserCreate(BaseModel):
     username: str = Field(max_length=MAX_USERNAME_LENGTH, pattern=r"^[\w.@+-]+$")
     email: EmailStr = Field(max_length=MAX_EMAIL_LENGTH)
 
+    class Config:
+        from_attributes = True
+
 
 class UserGetToken(BaseModel):
     username: str = Field(max_length=150, pattern=r"^[\w.@+-]+$")

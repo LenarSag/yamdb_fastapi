@@ -14,6 +14,10 @@ from models.base import Base
 from config import MAX_USERNAME_LENGTH, MAX_EMAIL_LENGTH
 
 
+def generate_uuid_str():
+    return str(uuid.uuid4())
+
+
 class UserRoles(PyEnum):
     ADMIN = "admin"
     MODERATOR = "moderator"
@@ -25,7 +29,7 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     username: Mapped[str] = mapped_column(
-        String(MAX_USERNAME_LENGTH), unique=True, nullable=False
+        String(MAX_USERNAME_LENGTH), unique=True, nullable=False, index=True
     )
     email: Mapped[str] = mapped_column(
         String(MAX_EMAIL_LENGTH), unique=True, nullable=False
@@ -35,11 +39,11 @@ class User(Base):
     is_superuser: Mapped[bool] = mapped_column(default=False)
     bio: Mapped[Optional[str]]
     role: Mapped[UserRoles] = mapped_column(
-        Enum(UserRoles),
+        Enum(UserRoles, values_callable=lambda obj: [e.value for e in obj]),
         default=UserRoles.USER.value,
         server_default=UserRoles.USER.value,
     )
-    confirmation_code: Mapped[str] = mapped_column(default=uuid.uuid4)
+    confirmation_code: Mapped[str] = mapped_column(default=generate_uuid_str)
 
     reviews = relationship(
         "Review", back_populates="author", cascade="all, delete-orphan"

@@ -149,4 +149,4 @@ dmypy.json
 media/
 yatube_api/posts/static/
 STATIC/
-
+sent_emails/

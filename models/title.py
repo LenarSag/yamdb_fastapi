@@ -98,8 +98,8 @@ class Comment(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     text: Mapped[str]
     author_id: Mapped[int] = mapped_column(ForeignKey("user.id"))
-    review_id: Mapped[int] = mapped_column(ForeignKey("title.id"))
+    review_id: Mapped[int] = mapped_column(ForeignKey("review.id"))
     pub_date: Mapped[datetime] = mapped_column(DateTime, default=func.now())
 
     author = relationship("User", back_populates="comments")
-    review: Mapped["Title"] = relationship("Title", back_populates="comments")
+    review: Mapped["Review"] = relationship("Review", back_populates="comments")

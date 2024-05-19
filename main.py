@@ -4,8 +4,12 @@ import uvicorn
 from fastapi import FastAPI
 
 from db.database import init_models
+from api.login import loginroute
+
 
 app = FastAPI()
+
+app.include_router(loginroute, prefix="/auth")
 
 
 @app.get("/")
