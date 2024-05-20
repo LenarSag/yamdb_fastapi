@@ -3,12 +3,13 @@ from typing import Optional
 
 import jwt
 from fastapi.security import OAuth2PasswordBearer
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import config as config
 from crud.user_repository import get_user_by_username
 from models.user import User
+from schemas.user_schema import UserAuth
 from security.pwd_crypt import verify_code
 
 
@@ -24,8 +25,8 @@ async def authenticate_user(
     return user
 
 
-def create_access_token(user: User):
-    to_encode = {"sub": user.username}
+def create_access_token(user: User) -> str:
+    to_encode = {"sub": user.username, "id": user.id}
     expire = datetime.now() + timedelta(minutes=config.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, config.SECRET_KEY, algorithm=config.ALGORITHM)
@@ -33,10 +34,11 @@ def create_access_token(user: User):
 
 
 # Функция получения User'а по токену
-def get_user_from_token(token: str):
+def get_user_from_token(token: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(token, config.SECRET_KEY, algorithms=[config.ALGORITHM])
         return UserAuth(
+            id=payload.get("id"),
             username=payload.get("sub"),
         )
     except jwt.ExpiredSignatureError:

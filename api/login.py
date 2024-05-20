@@ -21,17 +21,22 @@ from security.pwd_crypt import get_hashed_code
 loginroute = APIRouter()
 
 
+def create_confirmation_code():
+    return str(uuid.uuid4())
+
+
 @loginroute.post("/signup/", response_model=UserCreate)
 async def signup_and_get_confirmation_code(
-    user_data: UserCreate = Depends(),
+    user_data: UserCreate,
     session: AsyncSession = Depends(get_session),
 ):
     user_by_username = await get_user_by_username(session, user_data.username)
     user_by_email = await get_user_by_email(session, user_data.email)
 
     if user_by_username and user_by_email:
-        code = str(uuid.uuid4())
+        code = create_confirmation_code()
         hashed_code = get_hashed_code(code)
+
         await update_confirmation_code(session, user_by_username, hashed_code)
         await send_confirmation_code(user_data.email, code)
         return JSONResponse(
@@ -46,8 +51,11 @@ async def signup_and_get_confirmation_code(
             detail="Email already registered", status_code=status.HTTP_400_BAD_REQUEST
         )
 
-    new_user = await create_user(session, user_data)
-    await send_confirmation_code(new_user.email, new_user.confirmation_code)
+    code = create_confirmation_code()
+    hashed_code = get_hashed_code(code)
+
+    new_user = await create_user(session, user_data, hashed_code)
+    await send_confirmation_code(new_user.email, code)
     user = UserCreate(username=new_user.username, email=new_user.email)
 
     return JSONResponse(content=user.model_dump(), status_code=status.HTTP_200_OK)
@@ -70,4 +78,4 @@ async def login_for_access_token(
         )
 
     access_token = create_access_token(user)
-    return {"access_token": access_token}
+    return {"access_token": access_token, "token_type": "bearer"}

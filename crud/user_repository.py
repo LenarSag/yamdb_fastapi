@@ -5,8 +5,8 @@ from models.user import User
 from schemas.user_schema import UserCreate
 
 
-async def create_user(session: AsyncSession, user_data: UserCreate) -> User:
-    db_user = User(**user_data.model_dump())
+async def create_user(session: AsyncSession, user_data: UserCreate, code: str) -> User:
+    db_user = User(**user_data.model_dump(), confirmation_code=code)
     session.add(db_user)
     await session.commit()
     await session.refresh(db_user)

@@ -1,7 +1,8 @@
 from typing import Optional
 from datetime import datetime
 
-from pydantic import BaseModel, Field, conint, field_validator, ValidationError
+from fastapi.exceptions import ValidationException
+from pydantic import BaseModel, Field, conint, field_validator
 
 from config import MAX_SLUG_LENGTH, MIN_SLUG_LENGTH
 
@@ -42,7 +43,7 @@ class TitleCreate(BaseModel):
     @classmethod
     def validate_year(cls, year):
         if year > datetime.now().year:
-            raise ValidationError("Year cant be more than current year")
+            raise ValidationException("Year cant be more than current year")
         return year
 
 
