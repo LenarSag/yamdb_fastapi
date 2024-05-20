@@ -26,8 +26,8 @@ async def get_user_by_email(session: AsyncSession, email: str) -> User:
 
 
 async def update_confirmation_code(
-    session: AsyncSession, db_user: User, code: str
+    session: AsyncSession, db_user: User, hashed_code: str
 ) -> None:
-    db_user.confirmation_code = code
+    db_user.confirmation_code = hashed_code
     await session.commit()
     await session.refresh(db_user)

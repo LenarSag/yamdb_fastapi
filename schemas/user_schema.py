@@ -1,5 +1,5 @@
 from typing import Optional
-from uuid import UUID
+
 from pydantic import BaseModel, EmailStr, Field
 
 from models.user import UserRoles
@@ -16,7 +16,10 @@ class UserCreate(BaseModel):
 
 class UserGetToken(BaseModel):
     username: str = Field(max_length=150, pattern=r"^[\w.@+-]+$")
-    confirmation_code: UUID
+    confirmation_code: str
+
+    class Config:
+        from_attributes = True
 
 
 class UserForUser(UserCreate):
