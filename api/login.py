@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi.security import OAuth2PasswordRequestForm
 
-from schemas.user_schema import UserCreate
+from schemas.user_schema import UserCreate, UserGetToken
 from db.database import get_session
 from crud.user_repository import (
     create_user,
@@ -55,11 +55,11 @@ async def signup_and_get_confirmation_code(
 
 @loginroute.post("/token/")
 async def login_for_access_token(
+    user_data: UserGetToken,
     session: AsyncSession = Depends(get_session),
-    user_data: OAuth2PasswordRequestForm = Depends(),
 ):
     username = user_data.username
-    confirmation_code = user_data.password
+    confirmation_code = user_data.confirmation_code
 
     user = await authenticate_user(session, username, confirmation_code)
     if not user:

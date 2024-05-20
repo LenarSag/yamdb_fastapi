@@ -3,7 +3,7 @@ from typing import Optional
 
 import jwt
 from fastapi.security import OAuth2PasswordBearer
-from fastapi import Depends, HTTPException, status
+from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import config as config
@@ -33,7 +33,7 @@ def create_access_token(user: User):
 
 
 # Функция получения User'а по токену
-def get_user_from_token(token: str = Depends(oauth2_scheme)):
+def get_user_from_token(token: str):
     try:
         payload = jwt.decode(token, config.SECRET_KEY, algorithms=[config.ALGORITHM])
         return UserAuth(
