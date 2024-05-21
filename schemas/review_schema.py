@@ -7,17 +7,13 @@ from pydantic import BaseModel, Field, conint, field_validator
 from config import MAX_SLUG_LENGTH, MIN_SLUG_LENGTH
 
 
-class CategoryCreate(BaseModel):
+class CategoryBase(BaseModel):
     name: str
     slug: str = Field(
         min_length=MIN_SLUG_LENGTH,
         max_length=MAX_SLUG_LENGTH,
         pattern=r"^[-a-zA-Z0-9_]+$",
     )
-
-
-class CategoryDB(CategoryCreate):
-    id: int
 
 
 class GenreCreate(BaseModel):
