@@ -39,7 +39,7 @@ class User(Base):
         default=UserRoles.USER.value,
         server_default=UserRoles.USER.value,
     )
-    confirmation_code: Mapped[str]
+    confirmation_code: Mapped[Optional[str]]
 
     reviews = relationship(
         "Review", back_populates="author", cascade="all, delete-orphan"

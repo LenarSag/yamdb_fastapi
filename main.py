@@ -7,13 +7,17 @@ from fastapi.exceptions import ValidationException
 
 from db.database import init_models
 from api.login import loginroute
-from api.category import categoryrouter
+from api.users import usersrouter
+from api.categories import categoryrouter
+from api.genres import genresrouter
 
 
 app = FastAPI()
 
 app.include_router(loginroute, prefix="/auth")
+app.include_router(usersrouter, prefix="/users")
 app.include_router(categoryrouter, prefix="/categories")
+app.include_router(genresrouter, prefix="/genres")
 
 
 @app.exception_handler(ValidationException)

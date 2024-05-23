@@ -21,7 +21,7 @@ from security.user_roles import is_admin
 categoryrouter = APIRouter()
 
 
-async def has_rights_or_unauthorized(user: User):
+def has_rights_or_unauthorized(user: User):
     if not is_admin(user):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Only for admins!"
@@ -35,11 +35,18 @@ async def create_new_category(
     session: AsyncSession = Depends(get_session),
     user_auth_data: UserAuth = Depends(get_user_from_token),
 ):
-    user = await get_user_by_username(session, user_auth_data.username)
-    permission = await has_rights_or_unauthorized(user)
+    request_user = await get_user_by_username(session, user_auth_data.username)
+    permission = has_rights_or_unauthorized(request_user)
     if permission:
+        category = await get_category_by_slug(session, category_data.slug)
+        if category:
+            raise HTTPException(
+                detail="Slug should be unique! Choose another slug",
+                status_code=status.HTTP_400_BAD_REQUEST,
+            )
         new_category = await create_category(session, category_data)
-        category = CategoryBase(name=new_category.name, slug=new_category.slug)
+        category = CategoryBase.model_validate(new_category)
+
         return JSONResponse(
             content=category.model_dump(), status_code=status.HTTP_201_CREATED
         )
@@ -57,10 +64,10 @@ async def delete_category_by_slug(
     session: AsyncSession = Depends(get_session),
     user_auth_data: UserAuth = Depends(get_user_from_token),
 ):
-    user = await get_user_by_username(session, user_auth_data.username)
-    permission = await has_rights_or_unauthorized(user)
+    request_user = await get_user_by_username(session, user_auth_data.username)
+    permission = has_rights_or_unauthorized(request_user)
     if permission:
-        category = get_category_by_slug(session, slug)
+        category = await get_category_by_slug(session, slug)
         if not category:
             raise HTTPException(
                 detail="Category not found", status_code=status.HTTP_404_NOT_FOUND

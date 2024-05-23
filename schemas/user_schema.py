@@ -25,6 +25,7 @@ class UserCreate(BaseModel):
 
     class Config:
         from_attributes = True
+        use_enum_values = True
 
 
 class UserGetToken(BaseModel):
@@ -35,12 +36,13 @@ class UserGetToken(BaseModel):
         from_attributes = True
 
 
-class UserForUser(UserCreate):
-    id: int
-    firt_name: Optional[str] = Field(max_length=MAX_USERNAME_LENGTH)
+class UserBase(UserCreate):
+    first_name: Optional[str] = Field(max_length=MAX_USERNAME_LENGTH)
     last_name: Optional[str] = Field(max_length=MAX_USERNAME_LENGTH)
     bio: Optional[str]
-
-
-class UserForAdmin(UserForUser):
     role: UserRoles = Field(default=UserRoles.USER)
+
+
+class UserDB(UserBase):
+    is_superuser: bool
+    id: int

@@ -16,17 +16,13 @@ class CategoryBase(BaseModel):
     )
 
 
-class GenreCreate(BaseModel):
+class GenreBase(BaseModel):
     name: str
     slug: str = Field(
         min_length=MIN_SLUG_LENGTH,
         max_length=MAX_SLUG_LENGTH,
         pattern=r"^[-a-zA-Z0-9_]+$",
     )
-
-
-class GenreDB(GenreCreate):
-    id: int
 
 
 class TitleCreate(BaseModel):

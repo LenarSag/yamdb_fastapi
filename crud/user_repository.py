@@ -1,11 +1,16 @@
+from typing import Optional, Union
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.user import User
-from schemas.user_schema import UserCreate
+from schemas.user_schema import UserCreate, UserBase
 
 
-async def create_user(session: AsyncSession, user_data: UserCreate, code: str) -> User:
+async def create_user(
+    session: AsyncSession,
+    user_data: Union[UserCreate, UserBase],
+    code: Optional[str] = None,
+) -> User:
     db_user = User(**user_data.model_dump(), confirmation_code=code)
     session.add(db_user)
     await session.commit()
@@ -23,6 +28,12 @@ async def get_user_by_email(session: AsyncSession, email: str) -> User:
     query = select(User).filter_by(email=email)
     result = await session.execute(query)
     return result.scalars().first()
+
+
+async def get_users(session: AsyncSession) -> list[User]:
+    query = select(User)
+    result = await session.execute(query)
+    return result.scalars().all()
 
 
 async def update_confirmation_code(
