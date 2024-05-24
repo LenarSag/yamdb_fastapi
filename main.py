@@ -10,6 +10,7 @@ from api.login import loginroute
 from api.users import usersrouter
 from api.categories import categoryrouter
 from api.genres import genresrouter
+from api.titles import titlesrouter
 
 
 app = FastAPI()
@@ -18,6 +19,7 @@ app.include_router(loginroute, prefix="/auth")
 app.include_router(usersrouter, prefix="/users")
 app.include_router(categoryrouter, prefix="/categories")
 app.include_router(genresrouter, prefix="/genres")
+app.include_router(titlesrouter, prefix="/titles")
 
 
 @app.exception_handler(ValidationException)

@@ -21,8 +21,8 @@ from models.base import Base
 genre_title = Table(
     "genre_title",
     Base.metadata,
-    Column("genre_id", ForeignKey("genre.id"), primary_key=True),
-    Column("title_id", ForeignKey("title.id"), primary_key=True),
+    Column("genre_id", ForeignKey("genre.id", ondelete="CASCADE"), primary_key=True),
+    Column("title_id", ForeignKey("title.id", ondelete="CASCADE"), primary_key=True),
 )
 
 
@@ -55,7 +55,9 @@ class Title(Base):
     name: Mapped[str] = mapped_column(String(MAX_FIELD_LENGTH))
     year: Mapped[int]
     description: Mapped[Optional[str]]
-    category_id: Mapped[int] = mapped_column(ForeignKey("category.id"))
+    category_id: Mapped[int] = mapped_column(
+        ForeignKey("category.id", ondelete="SET NULL"), nullable=True
+    )
     genres: Mapped[list["Genre"]] = relationship(
         secondary=genre_title, back_populates="titles"
     )

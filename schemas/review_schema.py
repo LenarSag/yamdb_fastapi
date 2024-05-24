@@ -5,6 +5,7 @@ from fastapi.exceptions import ValidationException
 from pydantic import BaseModel, Field, conint, field_validator
 
 from config import MAX_SLUG_LENGTH, MIN_SLUG_LENGTH
+from models.review import Genre
 
 
 class CategoryBase(BaseModel):
@@ -34,7 +35,8 @@ class GenreBase(BaseModel):
 class TitleCreate(BaseModel):
     name: str
     year: int
-    genre: str
+    description: Optional[str]
+    genre: list[str]
     category: str
 
     @field_validator("year")
@@ -48,10 +50,13 @@ class TitleCreate(BaseModel):
         from_attributes = True
 
 
-class TitleDB(TitleCreate):
-    id: int
-    reviews_score: float
+class TitleOut(BaseModel):
+    name: str
+    year: int
+    rating: float
     description: Optional[str]
+    genres: list[GenreBase]
+    category: CategoryBase
 
 
 class ReviewCreate(BaseModel):

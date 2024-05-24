@@ -1,8 +1,8 @@
 """initial
 
-Revision ID: 2dee400c8ba4
+Revision ID: e0a442a6b816
 Revises: 
-Create Date: 2024-05-23 09:24:57.278798
+Create Date: 2024-05-24 14:59:36.604203
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '2dee400c8ba4'
+revision: str = 'e0a442a6b816'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -53,15 +53,15 @@ def upgrade() -> None:
     sa.Column('name', sa.String(length=255), nullable=False),
     sa.Column('year', sa.Integer(), nullable=False),
     sa.Column('description', sa.String(), nullable=True),
-    sa.Column('category_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['category_id'], ['category.id'], ),
+    sa.Column('category_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['category_id'], ['category.id'], ondelete='SET NULL'),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('genre_title',
     sa.Column('genre_id', sa.Integer(), nullable=False),
     sa.Column('title_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['genre_id'], ['genre.id'], ),
-    sa.ForeignKeyConstraint(['title_id'], ['title.id'], ),
+    sa.ForeignKeyConstraint(['genre_id'], ['genre.id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['title_id'], ['title.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('genre_id', 'title_id')
     )
     op.create_table('review',
