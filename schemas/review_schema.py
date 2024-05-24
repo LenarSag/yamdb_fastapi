@@ -15,6 +15,9 @@ class CategoryBase(BaseModel):
         pattern=r"^[-a-zA-Z0-9_]+$",
     )
 
+    class Config:
+        from_attributes = True
+
 
 class GenreBase(BaseModel):
     name: str
@@ -23,6 +26,9 @@ class GenreBase(BaseModel):
         max_length=MAX_SLUG_LENGTH,
         pattern=r"^[-a-zA-Z0-9_]+$",
     )
+
+    class Config:
+        from_attributes = True
 
 
 class TitleCreate(BaseModel):
@@ -38,6 +44,9 @@ class TitleCreate(BaseModel):
             raise ValidationException("Year cant be more than current year")
         return year
 
+    class Config:
+        from_attributes = True
+
 
 class TitleDB(TitleCreate):
     id: int
@@ -49,6 +58,9 @@ class ReviewCreate(BaseModel):
     text: str
     score: conint(ge=1, le=10)
 
+    class Config:
+        from_attributes = True
+
 
 class ReviewDB(ReviewCreate):
     id: int
@@ -58,6 +70,9 @@ class ReviewDB(ReviewCreate):
 
 class CommentCreate(BaseModel):
     text: str
+
+    class Config:
+        from_attributes = True
 
 
 class CommentDB(CommentCreate):

@@ -25,7 +25,7 @@ async def get_genres(session: AsyncSession) -> list[Genre]:
     return result.scalars().all()
 
 
-async def delete_genre(session: AsyncSession, category_db: Genre):
+async def delete_genre(session: AsyncSession, category_db: Genre) -> bool:
     await session.delete(category_db)
     await session.commit()
     return True

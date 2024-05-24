@@ -15,18 +15,19 @@ from models.user import User
 from schemas.review_schema import GenreBase
 from schemas.user_schema import UserAuth
 from security.security import get_user_from_token
-from security.user_roles import is_admin
+from security.user_permissions import is_admin
 
 
 genresrouter = APIRouter()
 
 
-async def has_rights_or_unauthorized(user: User):
-    if not is_admin(user):
+async def user_exist_or_401(session: AsyncSession, username: str) -> User:
+    request_user = await get_user_by_username(session, username)
+    if not request_user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Only for admins!"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Please, login again"
         )
-    return True
+    return request_user
 
 
 @genresrouter.post("/", response_model=GenreBase)
@@ -35,8 +36,8 @@ async def create_new_genre(
     session: AsyncSession = Depends(get_session),
     user_auth_data: UserAuth = Depends(get_user_from_token),
 ):
-    request_user = await get_user_by_username(session, user_auth_data.username)
-    permission = await has_rights_or_unauthorized(request_user)
+    request_user = await user_exist_or_401(session, user_auth_data.username)
+    permission = is_admin(request_user)
     if permission:
         category = await get_genre_by_slug(session, genre_data.slug)
         if category:
@@ -64,8 +65,8 @@ async def delete_genre_by_slug(
     session: AsyncSession = Depends(get_session),
     user_auth_data: UserAuth = Depends(get_user_from_token),
 ):
-    request_user = await get_user_by_username(session, user_auth_data.username)
-    permission = await has_rights_or_unauthorized(request_user)
+    request_user = await user_exist_or_401(session, user_auth_data.username)
+    permission = is_admin(request_user)
     if permission:
         category = await get_genre_by_slug(session, slug)
         if not category:

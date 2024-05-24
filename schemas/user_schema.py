@@ -29,7 +29,7 @@ class UserCreate(BaseModel):
 
 
 class UserGetToken(BaseModel):
-    username: str = Field(max_length=150, pattern=r"^[\w.@+-]+$")
+    username: str = Field(max_length=MAX_USERNAME_LENGTH, pattern=r"^[\w.@+-]+$")
     confirmation_code: str
 
     class Config:

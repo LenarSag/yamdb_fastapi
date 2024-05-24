@@ -11,36 +11,33 @@ from crud.category_repository import (
     get_category_by_slug,
 )
 from db.database import get_session
+from models.review import Title
 from models.user import User
-from schemas.review_schema import CategoryBase
+from schemas.review_schema import CategoryBase, TitleCreate
 from schemas.user_schema import UserAuth
 from security.security import get_user_from_token
 from security.user_permissions import is_admin
 
 
-categoryrouter = APIRouter()
+titlesrouter = APIRouter()
 
 
-async def user_exist_or_401(session: AsyncSession, username: str) -> User:
-    request_user = await get_user_by_username(session, username)
+@titlesrouter.post("/", response_model=TitleCreate)
+async def create_new_category(
+    title_data: TitleCreate,
+    session: AsyncSession = Depends(get_session),
+    user_auth_data: UserAuth = Depends(get_user_from_token),
+):
+    request_user = await get_user_by_username(session, user_auth_data.username)
     if not request_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Please, login again"
         )
-    return request_user
 
-
-@categoryrouter.post("/", response_model=CategoryBase)
-async def create_new_category(
-    category_data: CategoryBase,
-    session: AsyncSession = Depends(get_session),
-    user_auth_data: UserAuth = Depends(get_user_from_token),
-):
-    request_user = await user_exist_or_401(session, user_auth_data.username)
     permission = is_admin(request_user)
     if permission:
-        category = await get_category_by_slug(session, category_data.slug)
-        if category:
+        title = await get_category_by_slug(session, title_data.slug)
+        if title:
             raise HTTPException(
                 detail="Slug should be unique! Choose another slug",
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -53,20 +50,25 @@ async def create_new_category(
         )
 
 
-@categoryrouter.get("/", response_model=Page[CategoryBase])
+@titlesrouter.get("/", response_model=Page[CategoryBase])
 async def get_all_categories(session: AsyncSession = Depends(get_session)):
     categories = await get_categories(session)
     return paginate(categories)
 
 
-@categoryrouter.delete("/{slug}/")
+@titlesrouter.delete("/{slug}/")
 async def delete_category_by_slug(
     slug: str,
     session: AsyncSession = Depends(get_session),
     user_auth_data: UserAuth = Depends(get_user_from_token),
 ):
-    request_user = await user_exist_or_401(session, user_auth_data.username)
-    permission = is_admin(request_user)
+    request_user = await get_user_by_username(session, user_auth_data.username)
+    if not request_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Please, login again"
+        )
+
+    permission = has_rights_or_unauthorized(request_user)
     if permission:
         category = await get_category_by_slug(session, slug)
         if not category:

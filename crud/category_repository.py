@@ -27,7 +27,7 @@ async def get_categories(session: AsyncSession) -> list[Category]:
     return result.scalars().all()
 
 
-async def delete_category(session: AsyncSession, category_db: Category):
+async def delete_category(session: AsyncSession, category_db: Category) -> bool:
     await session.delete(category_db)
     await session.commit()
     return True
