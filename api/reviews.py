@@ -1,12 +1,20 @@
 from fastapi import APIRouter, HTTPException, Response, Depends, Path, status
 
 from fastapi.responses import JSONResponse
+from fastapi_pagination import Page, add_pagination, paginate
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from crud.reviews_repository import review_exists, create_review
+from crud.reviews_repository import (
+    get_review_by_id,
+    get_reviews,
+    review_exists,
+    create_review,
+)
+from crud.titles_repository import get_title_by_id
 from crud.user_repository import get_user_by_username
 
 from db.database import get_session
+from models.review import Title
 from models.user import User
 from schemas.review_schema import ReviewCreate, ReviewOut
 from schemas.user_schema import UserAuth
@@ -25,6 +33,15 @@ async def get_user_or_401(session: AsyncSession, username: str) -> User:
     return request_user
 
 
+async def get_title_or_404(session: AsyncSession, title_id: int) -> Title:
+    title = await get_title_by_id(session, title_id)
+    if not title:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Title not found!"
+        )
+    return title
+
+
 @reviewsrouter.post("/", response_model=ReviewOut)
 async def create_new_review(
     review_data: ReviewCreate,
@@ -33,7 +50,8 @@ async def create_new_review(
     user_auth_data: UserAuth = Depends(get_user_from_token),
 ):
     request_user = await get_user_or_401(session, user_auth_data.username)
-    review = await review_exists(session, request_user.id, title_id)
+    title = await get_title_or_404(session, title_id)
+    review = await review_exists(session, request_user.id, title.id)
     if review:
         raise HTTPException(
             detail="You already reviewed this title",
@@ -57,3 +75,64 @@ async def create_new_review(
         content=response_content,
         status_code=status.HTTP_201_CREATED,
     )
+
+
+@reviewsrouter.get("/", response_model=Page[ReviewOut])
+async def get_all_reviews(
+    title_id: int = Path(..., title="The id of the title"),
+    session: AsyncSession = Depends(get_session),
+):
+    title = await get_title_or_404(session, title_id)
+    reviews = await get_reviews(session, title.id)
+    reviews_out = [
+        ReviewOut(
+            id=review.id,
+            text=review.text,
+            score=review.score,
+            author=review.author.username,
+            pub_date=review.pub_date,
+        )
+        for review in reviews
+    ]
+    return paginate(reviews_out)
+
+
+@reviewsrouter.get("/{review_id}/", response_model=ReviewOut)
+async def get_review(
+    review_id: int,
+    title_id: int = Path(..., title="The id of the title"),
+    session: AsyncSession = Depends(get_session),
+):
+    _ = await get_title_or_404(session, title_id)
+    review = await get_review_by_id(session, review_id)
+    review_out = ReviewOut(
+        id=review.id,
+        text=review.text,
+        score=review.score,
+        author=review.author.username,
+        pub_date=review.pub_date,
+    )
+
+    return review_out
+
+
+@reviewsrouter.patch("/{review_id}/", response_model=ReviewOut)
+async def update_review(
+    review_id: int,
+    title_id: int = Path(..., title="The id of the title"),
+    session: AsyncSession = Depends(get_session),
+):
+    _ = await get_title_or_404(session, title_id)
+    review = await get_review_by_id(session, review_id)
+    review_out = ReviewOut(
+        id=review.id,
+        text=review.text,
+        score=review.score,
+        author=review.author.username,
+        pub_date=review.pub_date,
+    )
+
+    return review_out
+
+
+add_pagination(reviewsrouter)

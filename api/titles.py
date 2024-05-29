@@ -8,6 +8,7 @@ from crud.genres_repository import get_genre_by_slug
 from crud.titles_repository import (
     create_title,
     delete_title,
+    get_title_by_id,
     get_title_by_id_with_avg_score,
     get_titles_with_avg_score,
     update_title_info,
@@ -190,7 +191,11 @@ async def delete_title_by_id(
     request_user = await get_user_or_401(session, user_auth_data.username)
     permission = is_admin(request_user)
     if permission:
-        title, _ = await get_title_with_score_or_404(session, title_id)
+        title = await get_title_by_id(session, title_id)
+        if not title:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Title not found!"
+            )
         deleted = await delete_title(session, title)
         if deleted:
             return Response(status_code=status.HTTP_204_NO_CONTENT)

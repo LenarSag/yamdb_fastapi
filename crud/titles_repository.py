@@ -1,6 +1,6 @@
-from typing import Optional, Union
-from sqlalchemy import select, literal_column
-from sqlalchemy.orm import selectinload, aliased
+from typing import Optional
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.sql import func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -30,6 +30,12 @@ async def create_title(
         .filter_by(name=db_title.name)
         .options(selectinload(Title.genres), selectinload(Title.category))
     )
+    result = await session.execute(query)
+    return result.scalars().first()
+
+
+async def get_title_by_id(session: AsyncSession, title_id: int) -> Title:
+    query = select(Title).filter_by(id=title_id)
     result = await session.execute(query)
     return result.scalars().first()
 

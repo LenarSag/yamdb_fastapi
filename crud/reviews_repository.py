@@ -33,6 +33,20 @@ async def review_exists(session: AsyncSession, author_id: int, title_id: int):
     return result.scalar()
 
 
+async def get_reviews(session: AsyncSession, title_id: int) -> list[Review]:
+    query = (
+        select(Review).filter_by(title_id=title_id).options(selectinload(Review.author))
+    )
+    result = await session.execute(query)
+    return result.scalars().all()
+
+
+async def get_review_by_id(session: AsyncSession, review_id: int) -> Review:
+    query = select(Review).filter_by(id=review_id).options(selectinload(Review.author))
+    result = await session.execute(query)
+    return result.scalars().first()
+
+
 # async def get_category_by_slug(session: AsyncSession, slug: str) -> Category:
 #     query = select(Category).filter_by(slug=slug)
 #     result = await session.execute(query)
