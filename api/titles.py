@@ -153,7 +153,9 @@ async def update_title(
     request_user = await get_user_or_401(session, user_auth_data.username)
     permission = is_admin(request_user)
     if permission:
-        title_to_update = await get_title_or_404(session, title_id)
+        title_to_update, avg_score = await get_title_with_score_or_404(
+            session, title_id
+        )
         category = await get_category_or_400(session, title_data.category)
         list_of_genres = await get_genres_or_400(session, title_data.genre)
         updated_title = await update_title_info(
@@ -163,7 +165,7 @@ async def update_title(
         title_out = TitleOut(
             name=updated_title.name,
             year=updated_title.year,
-            rating=3.4,
+            rating=avg_score,
             description=updated_title.description,
             genres=[
                 GenreBase(name=genre.name, slug=genre.slug)
@@ -188,7 +190,7 @@ async def delete_title_by_id(
     request_user = await get_user_or_401(session, user_auth_data.username)
     permission = is_admin(request_user)
     if permission:
-        title = await get_title_or_404(session, title_id)
+        title, _ = await get_title_with_score_or_404(session, title_id)
         deleted = await delete_title(session, title)
         if deleted:
             return Response(status_code=status.HTTP_204_NO_CONTENT)

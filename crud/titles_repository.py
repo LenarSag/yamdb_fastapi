@@ -51,7 +51,9 @@ async def get_title_by_id_with_avg_score(
     return None
 
 
-async def get_titles_with_avg_score(session: AsyncSession):  # -> list[Title]:
+async def get_titles_with_avg_score(
+    session: AsyncSession,
+) -> list[tuple[Title, Optional[float]]]:
     query = (
         select(Title, func.avg(Review.score).label("avg_score"))
         .outerjoin(Review, Review.title_id == Title.id)
