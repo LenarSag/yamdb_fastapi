@@ -53,7 +53,7 @@ class TitleCreate(BaseModel):
 class TitleOut(BaseModel):
     name: str
     year: int
-    rating: float
+    rating: Optional[float]
     description: Optional[str]
     genres: list[GenreBase]
     category: CategoryBase
@@ -65,9 +65,10 @@ class ReviewCreate(BaseModel):
 
     class Config:
         from_attributes = True
+        json_encoders = {datetime: lambda v: v.isoformat()}
 
 
-class ReviewDB(ReviewCreate):
+class ReviewOut(ReviewCreate):
     id: int
     author: str
     pub_date: datetime

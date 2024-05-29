@@ -21,7 +21,7 @@ from security.user_permissions import is_admin
 genresrouter = APIRouter()
 
 
-async def user_exist_or_401(session: AsyncSession, username: str) -> User:
+async def get_user_or_401(session: AsyncSession, username: str) -> User:
     request_user = await get_user_by_username(session, username)
     if not request_user:
         raise HTTPException(
@@ -36,7 +36,7 @@ async def create_new_genre(
     session: AsyncSession = Depends(get_session),
     user_auth_data: UserAuth = Depends(get_user_from_token),
 ):
-    request_user = await user_exist_or_401(session, user_auth_data.username)
+    request_user = await get_user_or_401(session, user_auth_data.username)
     permission = is_admin(request_user)
     if permission:
         category = await get_genre_by_slug(session, genre_data.slug)
@@ -65,7 +65,7 @@ async def delete_genre_by_slug(
     session: AsyncSession = Depends(get_session),
     user_auth_data: UserAuth = Depends(get_user_from_token),
 ):
-    request_user = await user_exist_or_401(session, user_auth_data.username)
+    request_user = await get_user_or_401(session, user_auth_data.username)
     permission = is_admin(request_user)
     if permission:
         category = await get_genre_by_slug(session, slug)
