@@ -1,5 +1,7 @@
-from typing import Optional
+from typing import Optional, Sequence, Any
+
 from sqlalchemy import select
+from sqlalchemy.engine import Row
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql import func
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,7 +15,7 @@ async def create_title(
     title_data: TitleCreate,
     category_id: int,
     genres: list[Genre],
-) -> Title:
+) -> Optional[Title]:
     db_title = Title(
         name=title_data.name,
         year=title_data.year,
@@ -34,7 +36,7 @@ async def create_title(
     return result.scalars().first()
 
 
-async def get_title_by_id(session: AsyncSession, title_id: int) -> Title:
+async def get_title_by_id(session: AsyncSession, title_id: int) -> Optional[Title]:
     query = select(Title).filter_by(id=title_id)
     result = await session.execute(query)
     return result.scalars().first()
@@ -42,7 +44,7 @@ async def get_title_by_id(session: AsyncSession, title_id: int) -> Title:
 
 async def get_title_by_id_with_avg_score(
     session: AsyncSession, title_id: int
-) -> Optional[tuple[Title, Optional[float]]]:
+) -> Row[tuple[Title, Any]]:
     query = (
         select(Title, func.avg(Review.score).label("avg_score"))
         .outerjoin(Review, Review.title_id == Title.id)
@@ -59,7 +61,7 @@ async def get_title_by_id_with_avg_score(
 
 async def get_titles_with_avg_score(
     session: AsyncSession,
-) -> list[tuple[Title, Optional[float]]]:
+) -> Sequence[Row[tuple[Title, Any]]]:
     query = (
         select(Title, func.avg(Review.score).label("avg_score"))
         .outerjoin(Review, Review.title_id == Title.id)
@@ -76,7 +78,7 @@ async def update_title_info(
     new_title_data: TitleCreate,
     new_category_id: int,
     new_genres: list[Genre],
-) -> Title:
+) -> Optional[Title]:
     db_title.name = new_title_data.name
     db_title.year = new_title_data.year
     db_title.description = new_title_data.description

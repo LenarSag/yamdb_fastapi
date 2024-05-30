@@ -1,9 +1,9 @@
 from fastapi import APIRouter, HTTPException, Response, Depends, Path, status
-
 from fastapi.responses import JSONResponse
 from fastapi_pagination import Page, add_pagination, paginate
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from api.comments import commentsrouter
 from crud.reviews_repository import (
     delete_review,
     get_review_by_id,
@@ -14,7 +14,6 @@ from crud.reviews_repository import (
 )
 from crud.titles_repository import get_title_by_id
 from crud.user_repository import get_user_by_id
-
 from db.database import get_session
 from models.review import Review, Title
 from schemas.review_schema import ReviewCreate, ReviewOut
@@ -132,15 +131,15 @@ async def update_review(
             review_to_update,
             new_review_data,
         )
-    review_out = ReviewOut(
-        id=updated_review.id,
-        text=updated_review.text,
-        score=updated_review.score,
-        author=updated_review.author.username,
-        pub_date=updated_review.pub_date,
-    )
+        review_out = ReviewOut(
+            id=updated_review.id,
+            text=updated_review.text,
+            score=updated_review.score,
+            author=updated_review.author.username,
+            pub_date=updated_review.pub_date,
+        )
 
-    return review_out
+        return review_out
 
 
 @reviewsrouter.delete("/{review_id}/")
@@ -161,5 +160,7 @@ async def delete_review_by_id(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
+
+reviewsrouter.include_router(commentsrouter, prefix="/{review_id}/comments")
 
 add_pagination(reviewsrouter)

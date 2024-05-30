@@ -81,7 +81,7 @@ class CommentCreate(BaseModel):
         from_attributes = True
 
 
-class CommentDB(CommentCreate):
+class CommentOut(CommentCreate):
     id: int
     author: str
     pub_date: datetime

@@ -1,3 +1,5 @@
+from typing import Optional, Sequence
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,13 +17,13 @@ async def create_category(
     return db_category
 
 
-async def get_category_by_slug(session: AsyncSession, slug: str) -> Category:
+async def get_category_by_slug(session: AsyncSession, slug: str) -> Optional[Category]:
     query = select(Category).filter_by(slug=slug)
     result = await session.execute(query)
     return result.scalars().first()
 
 
-async def get_categories(session: AsyncSession) -> list[Category]:
+async def get_categories(session: AsyncSession) -> Sequence[Category]:
     query = select(Category)
     result = await session.execute(query)
     return result.scalars().all()
