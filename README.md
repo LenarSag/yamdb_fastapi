@@ -65,29 +65,40 @@ pip install -r requirements.txt
 
 Подключаем и настраиваем алембик:
 
-$ alembic init migration
+```
+alembic init migration
+```
 
 В файле alembic.ini указываем адрес базы:
 
+```
 [alembic]
 ...
 sqlalchemy.url = postgresql://romblin@localhost/db
-
+```
 
 В файле migration/env.py импортируем все модели и указываем target_metadata:
 
+```
 from db import *
 target_metadata = Base.metadata
+```
 
 После этого:
 
+```
 alembic revision --autogenerate -m 'initial'
+```
+```
 alembic upgrade head
+```
 
 Запуск проекта:
 
-python main.py
 
+```
+python main.py
+```
 
 ### Ресурсы API YaMDb:
 
