@@ -1,3 +1,5 @@
+from typing import Optional, Sequence
+
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql import exists
@@ -9,7 +11,7 @@ from schemas.review_schema import ReviewCreate
 
 async def create_review(
     session: AsyncSession, review_data: ReviewCreate, author_id: int, title_id: int
-) -> Review:
+) -> Optional[Review]:
     db_review = Review(
         **review_data.model_dump(), author_id=author_id, title_id=title_id
     )
@@ -24,7 +26,9 @@ async def create_review(
     return result.scalars().first()
 
 
-async def review_exists(session: AsyncSession, author_id: int, title_id: int):
+async def review_exists(
+    session: AsyncSession, author_id: int, title_id: int
+) -> Optional[bool]:
     subquery = select(
         exists().where(Review.author_id == author_id, Review.title_id == title_id)
     )
@@ -33,7 +37,7 @@ async def review_exists(session: AsyncSession, author_id: int, title_id: int):
     return result.scalar()
 
 
-async def get_reviews(session: AsyncSession, title_id: int) -> list[Review]:
+async def get_reviews(session: AsyncSession, title_id: int) -> Sequence[Review]:
     query = (
         select(Review).filter_by(title_id=title_id).options(selectinload(Review.author))
     )
@@ -41,7 +45,7 @@ async def get_reviews(session: AsyncSession, title_id: int) -> list[Review]:
     return result.scalars().all()
 
 
-async def get_review_by_id(session: AsyncSession, review_id: int) -> Review:
+async def get_review_by_id(session: AsyncSession, review_id: int) -> Optional[Review]:
     query = select(Review).filter_by(id=review_id).options(selectinload(Review.author))
     result = await session.execute(query)
     return result.scalars().first()
@@ -61,21 +65,3 @@ async def delete_review(session: AsyncSession, review_db: Review) -> bool:
     await session.delete(review_db)
     await session.commit()
     return True
-
-
-# async def get_category_by_slug(session: AsyncSession, slug: str) -> Category:
-#     query = select(Category).filter_by(slug=slug)
-#     result = await session.execute(query)
-#     return result.scalars().first()
-
-
-# async def get_categories(session: AsyncSession) -> list[Category]:
-#     query = select(Category)
-#     result = await session.execute(query)
-#     return result.scalars().all()
-
-
-# async def delete_category(session: AsyncSession, category_db: Category) -> bool:
-#     await session.delete(category_db)
-#     await session.commit()
-#     return True
