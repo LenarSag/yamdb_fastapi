@@ -74,14 +74,15 @@ alembic init migration
 ```
 [alembic]
 ...
-sqlalchemy.url = postgresql://romblin@localhost/db
+sqlalchemy.url = sqlite:///db.sqlite3
 ```
 
 В файле migration/env.py импортируем все модели и указываем target_metadata:
 
 ```
-from db import *
-target_metadata = Base.metadata
+import models
+
+target_metadata = models.Base.metadata
 ```
 
 После этого:
