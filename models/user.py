@@ -1,5 +1,4 @@
 import re
-import uuid
 from typing import Optional
 from enum import Enum as PyEnum
 

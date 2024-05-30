@@ -18,6 +18,12 @@ async def create_user(
     return db_user
 
 
+async def get_user_by_id(session: AsyncSession, id: int) -> User:
+    query = select(User).filter_by(id=id)
+    result = await session.execute(query)
+    return result.scalars().first()
+
+
 async def get_user_by_username(session: AsyncSession, username: str) -> User:
     query = select(User).filter_by(username=username)
     result = await session.execute(query)

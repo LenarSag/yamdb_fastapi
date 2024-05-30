@@ -13,13 +13,12 @@ from crud.titles_repository import (
     get_titles_with_avg_score,
     update_title_info,
 )
-from crud.user_repository import get_user_by_username
+from crud.user_repository import get_user_by_id
 from crud.category_repository import (
     get_category_by_slug,
 )
 from db.database import get_session
 from models.review import Category, Genre, Title
-from models.user import User
 from schemas.review_schema import CategoryBase, TitleCreate, TitleOut, GenreBase
 from schemas.user_schema import UserAuth
 from security.security import get_user_from_token
@@ -28,15 +27,6 @@ from api.reviews import reviewsrouter
 
 
 titlesrouter = APIRouter()
-
-
-async def get_user_or_401(session: AsyncSession, username: str) -> User:
-    request_user = await get_user_by_username(session, username)
-    if not request_user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Please, login again"
-        )
-    return request_user
 
 
 async def get_title_with_score_or_404(
@@ -80,7 +70,7 @@ async def create_new_title(
     session: AsyncSession = Depends(get_session),
     user_auth_data: UserAuth = Depends(get_user_from_token),
 ):
-    request_user = await get_user_or_401(session, user_auth_data.username)
+    request_user = await get_user_by_id(session, user_auth_data.id)
     permission = is_admin(request_user)
     if permission:
         category = await get_category_or_400(session, title_data.category)
@@ -141,7 +131,7 @@ async def get_title(
         category=CategoryBase(name=title.category.name, slug=title.category.slug),
     )
 
-    return JSONResponse(content=title_out.model_dump(), status_code=status.HTTP_200_OK)
+    return title_out
 
 
 @titlesrouter.patch("/{title_id}/", response_model=TitleOut)
@@ -151,7 +141,7 @@ async def update_title(
     session: AsyncSession = Depends(get_session),
     user_auth_data: UserAuth = Depends(get_user_from_token),
 ):
-    request_user = await get_user_or_401(session, user_auth_data.username)
+    request_user = await get_user_by_id(session, user_auth_data.id)
     permission = is_admin(request_user)
     if permission:
         title_to_update, avg_score = await get_title_with_score_or_404(
@@ -177,9 +167,7 @@ async def update_title(
             ),
         )
 
-        return JSONResponse(
-            content=title_out.model_dump(), status_code=status.HTTP_200_OK
-        )
+        return title_out
 
 
 @titlesrouter.delete("/{title_id}/")
@@ -188,7 +176,7 @@ async def delete_title_by_id(
     session: AsyncSession = Depends(get_session),
     user_auth_data: UserAuth = Depends(get_user_from_token),
 ):
-    request_user = await get_user_or_401(session, user_auth_data.username)
+    request_user = await get_user_by_id(session, user_auth_data.id)
     permission = is_admin(request_user)
     if permission:
         title = await get_title_by_id(session, title_id)

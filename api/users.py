@@ -11,6 +11,7 @@ from db.database import get_session
 from crud.user_repository import (
     create_user,
     delete_user_from_db,
+    get_user_by_id,
     get_user_by_username,
     get_user_by_email,
     get_users,
@@ -21,15 +22,6 @@ from security.user_permissions import is_admin
 
 
 usersrouter = APIRouter()
-
-
-async def get_user_or_401(session: AsyncSession, username: str) -> User:
-    request_user = await get_user_by_username(session, username)
-    if not request_user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Please, login again"
-        )
-    return request_user
 
 
 async def username_is_free(session: AsyncSession, username: str, method: str = "post"):
@@ -56,11 +48,7 @@ async def get_all_user(
     session: AsyncSession = Depends(get_session),
     user_auth_data: UserAuth = Depends(get_user_from_token),
 ):
-    request_user = await get_user_by_username(session, user_auth_data.username)
-    if not request_user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Please, login again"
-        )
+    request_user = await get_user_by_id(session, user_auth_data.id)
     permission = is_admin(request_user)
     if permission:
         users = await get_users(session)
@@ -73,7 +61,7 @@ async def create_new_user(
     session: AsyncSession = Depends(get_session),
     user_auth_data: UserAuth = Depends(get_user_from_token),
 ):
-    request_user = await get_user_or_401(session, user_auth_data.username)
+    request_user = await get_user_by_id(session, user_auth_data.id)
     permission = is_admin(request_user)
     if permission:
         user_by_username = await get_user_by_username(session, new_user_data.username)
@@ -101,7 +89,7 @@ async def get_myself(
     session: AsyncSession = Depends(get_session),
     user_auth_data: UserAuth = Depends(get_user_from_token),
 ):
-    request_user = await get_user_or_401(session, user_auth_data.username)
+    request_user = await get_user_by_id(session, user_auth_data.id)
     user = UserDB.model_validate(request_user)
     return user
 
@@ -112,7 +100,7 @@ async def update_myself(
     session: AsyncSession = Depends(get_session),
     user_auth_data: UserAuth = Depends(get_user_from_token),
 ):
-    request_user = await get_user_or_401(session, user_auth_data.username)
+    request_user = await get_user_by_id(session, user_auth_data.id)
 
     user_by_username = await get_user_by_username(session, new_user_data.username)
     user_by_email = await get_user_by_email(session, new_user_data.email)
@@ -139,7 +127,7 @@ async def get_user_for_admin(
     session: AsyncSession = Depends(get_session),
     user_auth_data: UserAuth = Depends(get_user_from_token),
 ):
-    request_user = await get_user_or_401(session, user_auth_data.username)
+    request_user = await get_user_by_id(session, user_auth_data.id)
     permission = is_admin(request_user)
     if permission:
         user_model = await get_user_by_username(session, username)
@@ -158,7 +146,7 @@ async def update_user(
     session: AsyncSession = Depends(get_session),
     user_auth_data: UserAuth = Depends(get_user_from_token),
 ):
-    request_user = await get_user_or_401(session, user_auth_data.username)
+    request_user = await get_user_by_id(session, user_auth_data.id)
     permission = is_admin(request_user)
     if permission:
         user_to_update = await get_user_by_username(session, username)
@@ -191,7 +179,7 @@ async def delete_user(
     session: AsyncSession = Depends(get_session),
     user_auth_data: UserAuth = Depends(get_user_from_token),
 ):
-    request_user = await get_user_or_401(session, user_auth_data.username)
+    request_user = await get_user_by_id(session, user_auth_data.id)
     permission = is_admin(request_user)
     if permission:
         user_to_delete = await get_user_by_username(session, username)

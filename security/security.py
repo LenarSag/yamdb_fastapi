@@ -26,7 +26,7 @@ async def authenticate_user(
 
 
 def create_access_token(user: User) -> str:
-    to_encode = {"sub": user.username, "id": user.id}
+    to_encode = {"sub": user.id}
     expire = datetime.now() + timedelta(minutes=config.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, config.SECRET_KEY, algorithm=config.ALGORITHM)
@@ -38,8 +38,7 @@ def get_user_from_token(token: str = Depends(oauth2_scheme)):
     try:
         payload = jwt.decode(token, config.SECRET_KEY, algorithms=[config.ALGORITHM])
         return UserAuth(
-            id=payload.get("id"),
-            username=payload.get("sub"),
+            id=int(payload.get("sub")),
         )
     except jwt.ExpiredSignatureError:
         raise HTTPException(

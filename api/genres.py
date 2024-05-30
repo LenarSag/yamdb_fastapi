@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from fastapi_pagination import Page, add_pagination, paginate
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from crud.user_repository import get_user_by_username
+from crud.user_repository import get_user_by_id
 from crud.genres_repository import (
     create_genre,
     get_genre_by_slug,
@@ -11,7 +11,6 @@ from crud.genres_repository import (
     delete_genre,
 )
 from db.database import get_session
-from models.user import User
 from schemas.review_schema import GenreBase
 from schemas.user_schema import UserAuth
 from security.security import get_user_from_token
@@ -21,22 +20,13 @@ from security.user_permissions import is_admin
 genresrouter = APIRouter()
 
 
-async def get_user_or_401(session: AsyncSession, username: str) -> User:
-    request_user = await get_user_by_username(session, username)
-    if not request_user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Please, login again"
-        )
-    return request_user
-
-
 @genresrouter.post("/", response_model=GenreBase)
 async def create_new_genre(
     genre_data: GenreBase,
     session: AsyncSession = Depends(get_session),
     user_auth_data: UserAuth = Depends(get_user_from_token),
 ):
-    request_user = await get_user_or_401(session, user_auth_data.username)
+    request_user = await get_user_by_id(session, user_auth_data.id)
     permission = is_admin(request_user)
     if permission:
         category = await get_genre_by_slug(session, genre_data.slug)
@@ -65,7 +55,7 @@ async def delete_genre_by_slug(
     session: AsyncSession = Depends(get_session),
     user_auth_data: UserAuth = Depends(get_user_from_token),
 ):
-    request_user = await get_user_or_401(session, user_auth_data.username)
+    request_user = await get_user_by_id(session, user_auth_data.id)
     permission = is_admin(request_user)
     if permission:
         category = await get_genre_by_slug(session, slug)

@@ -9,7 +9,6 @@ from config import MAX_USERNAME_LENGTH, MAX_EMAIL_LENGTH
 
 class UserAuth(BaseModel):
     id: int
-    username: str
 
 
 class UserCreate(BaseModel):
