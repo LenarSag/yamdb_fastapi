@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, Response, Depends, status
+from typing import Optional
+from fastapi import APIRouter, HTTPException, Response, Depends, Query, status
 from fastapi.responses import JSONResponse
 from fastapi_pagination import Page, add_pagination, paginate
 from pydantic import EmailStr
@@ -11,6 +12,7 @@ from db.database import get_session
 from crud.user_repository import (
     create_user,
     delete_user_from_db,
+    get_filtered_users,
     get_user_by_id,
     get_user_by_username,
     get_user_by_email,
@@ -47,9 +49,15 @@ async def email_is_free(session: AsyncSession, email: EmailStr):
 async def get_all_user(
     session: AsyncSession = Depends(get_session),
     user_auth_data: UserAuth = Depends(get_user_from_token),
+    username: Optional[str] = Query(
+        ...,
+    ),
 ):
     request_user = await get_user_by_id(session, user_auth_data.id)
     permission = is_admin(request_user)
+    if username:
+        users = await get_filtered_users(session, username)
+        return paginate(users)
     if permission:
         users = await get_users(session)
         return paginate(users)

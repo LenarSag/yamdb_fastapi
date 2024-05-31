@@ -43,6 +43,12 @@ async def get_users(session: AsyncSession) -> Sequence[User]:
     return result.scalars().all()
 
 
+async def get_filtered_users(session: AsyncSession, username: str = "fan"):
+    query = select(User).where(User.username.ilike(f"%{username}%"))
+    result = await session.execute(query)
+    return result.scalars().all()
+
+
 async def update_user_info(
     session: AsyncSession, db_user: User, new_user_data: UserBase
 ) -> User:
