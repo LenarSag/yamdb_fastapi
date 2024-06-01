@@ -69,9 +69,12 @@ async def get_titles_with_avg_score(
         .group_by(Title.id)
     )
     filters = []
+    name = searching_filters.get("name")
     genres = searching_filters.get("genres")
     category = searching_filters.get("category")
     year = searching_filters.get("year")
+    if name:
+        filters.append(Title.name.ilike(f"%{name}%"))
     if genres:
         genre_filters = [Genre.name.like(f"%{genre}%") for genre in genres.split(",")]
         filters.append(or_(*[Title.genres.any(filter) for filter in genre_filters]))

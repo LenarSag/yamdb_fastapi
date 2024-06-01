@@ -100,11 +100,17 @@ async def create_new_title(
 @titlesrouter.get("/", response_model=Page[TitleOut])
 async def get_all_titles(
     session: AsyncSession = Depends(get_session),
+    name: Optional[str] = Query(None),
     genres: Optional[str] = Query(None),
     category: Optional[str] = Query(None),
     year: Optional[int] = Query(None),
 ):
-    searching_filters = {"genres": genres, "category": category, "year": year}
+    searching_filters = {
+        "name": name,
+        "genres": genres,
+        "category": category,
+        "year": year,
+    }
     titles_with_scores = await get_titles_with_avg_score(session, searching_filters)
     titles_out = [
         TitleOut(
