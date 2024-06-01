@@ -49,14 +49,12 @@ async def email_is_free(session: AsyncSession, email: EmailStr):
 async def get_all_user(
     session: AsyncSession = Depends(get_session),
     user_auth_data: UserAuth = Depends(get_user_from_token),
-    username: Optional[str] = Query(
-        ...,
-    ),
+    filter_username: Optional[str] = Query(None),
 ):
     request_user = await get_user_by_id(session, user_auth_data.id)
     permission = is_admin(request_user)
-    if username:
-        users = await get_filtered_users(session, username)
+    if filter_username:
+        users = await get_filtered_users(session, filter_username)
         return paginate(users)
     if permission:
         users = await get_users(session)

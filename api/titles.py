@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Depends, Response, status
+from fastapi import APIRouter, HTTPException, Depends, Query, Response, status
 from fastapi.responses import JSONResponse
 from fastapi_pagination import Page, add_pagination, paginate
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -98,8 +98,14 @@ async def create_new_title(
 
 
 @titlesrouter.get("/", response_model=Page[TitleOut])
-async def get_all_titles(session: AsyncSession = Depends(get_session)):
-    titles_with_scores = await get_titles_with_avg_score(session)
+async def get_all_titles(
+    session: AsyncSession = Depends(get_session),
+    genres: Optional[str] = Query(None),
+    category: Optional[str] = Query(None),
+    year: Optional[int] = Query(None),
+):
+    searching_filters = {"genres": genres, "category": category, "year": year}
+    titles_with_scores = await get_titles_with_avg_score(session, searching_filters)
     titles_out = [
         TitleOut(
             name=title.name,

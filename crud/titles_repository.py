@@ -1,12 +1,12 @@
-from typing import Optional, Sequence, Any
+from typing import Union, Optional, Sequence, Any
 
-from sqlalchemy import select
+from sqlalchemy import select, or_, extract
 from sqlalchemy.engine import Row
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql import func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models.review import Review, Title, Genre
+from models.review import Review, Title, Genre, Category
 from schemas.review_schema import TitleCreate
 
 
@@ -60,7 +60,7 @@ async def get_title_by_id_with_avg_score(
 
 
 async def get_titles_with_avg_score(
-    session: AsyncSession,
+    session: AsyncSession, searching_filters: dict[str, Union[str, int, None]]
 ) -> Sequence[Row[tuple[Title, Any]]]:
     query = (
         select(Title, func.avg(Review.score).label("avg_score"))
@@ -68,8 +68,45 @@ async def get_titles_with_avg_score(
         .options(selectinload(Title.genres), selectinload(Title.category))
         .group_by(Title.id)
     )
+    filters = []
+    genres = searching_filters.get("genres")
+    category = searching_filters.get("category")
+    year = searching_filters.get("year")
+    if genres:
+        genre_filters = [Genre.name.like(f"%{genre}%") for genre in genres.split(",")]
+        filters.append(or_(*[Title.genres.any(filter) for filter in genre_filters]))
+    if category:
+        filters.append(Title.category.has(Category.name.like(f"%{category}%")))
+    if year:
+        filters.append(Title.year == year)
+    if filters:
+        query = query.where(*filters)
     result = await session.execute(query)
     return result.all()
+
+
+"""
+filters = []
+    
+    if genres:
+        filters.append(Title.genres.any(Genre.id.in_(genres))))
+        
+    if category:
+        filters.append(Title.category_id == category)
+        
+    if year:
+        filters.append(func.extract('year', Title.release_date) == year)
+        
+    if name:
+        filters.append(Title.name.ilike(f"%{name}%"))
+    
+    if filters:
+        query = query.where(and_(*filters))
+    
+    result = await session.execute(query)
+    return result.all()
+
+"""
 
 
 async def update_title_info(
