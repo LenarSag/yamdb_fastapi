@@ -23,8 +23,12 @@ async def get_category_by_slug(session: AsyncSession, slug: str) -> Optional[Cat
     return result.scalars().first()
 
 
-async def get_categories(session: AsyncSession) -> Sequence[Category]:
+async def get_categories(
+    session: AsyncSession, name: Optional[str] = None
+) -> Sequence[Category]:
     query = select(Category)
+    if name:
+        query.where(Category.name.ilike(f"%{name}%"))
     result = await session.execute(query)
     return result.scalars().all()
 

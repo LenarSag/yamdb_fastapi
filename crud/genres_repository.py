@@ -21,8 +21,12 @@ async def get_genre_by_slug(session: AsyncSession, slug: str) -> Optional[Genre]
     return result.scalars().first()
 
 
-async def get_genres(session: AsyncSession) -> Sequence[Genre]:
+async def get_genres(
+    session: AsyncSession, name: Optional[str] = None
+) -> Sequence[Genre]:
     query = select(Genre)
+    if name:
+        query.where(Genre.name.ilike(f"%{name}%"))
     result = await session.execute(query)
     return result.scalars().all()
 

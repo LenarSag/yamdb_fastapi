@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends, Response, status
+from typing import Optional
+from fastapi import APIRouter, HTTPException, Depends, Query, Response, status
 from fastapi.responses import JSONResponse
 from fastapi_pagination import Page, add_pagination, paginate
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -44,8 +45,11 @@ async def create_new_genre(
 
 
 @genresrouter.get("/", response_model=Page[GenreBase])
-async def get_all_genres(session: AsyncSession = Depends(get_session)):
-    categories = await get_genres(session)
+async def get_all_genres(
+    session: AsyncSession = Depends(get_session),
+    filter_name: Optional[str] = Query(None),
+):
+    categories = await get_genres(session, filter_name)
     return paginate(categories)
 
 

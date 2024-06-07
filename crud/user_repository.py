@@ -37,16 +37,12 @@ async def get_user_by_email(session: AsyncSession, email: str) -> Optional[User]
     return result.scalars().first()
 
 
-async def get_users(session: AsyncSession) -> Sequence[User]:
-    query = select(User)
-    result = await session.execute(query)
-    return result.scalars().all()
-
-
-async def get_filtered_users(
-    session: AsyncSession, username: str = "fan"
+async def get_users(
+    session: AsyncSession, username: Optional[str] = None
 ) -> Sequence[User]:
-    query = select(User).where(User.username.ilike(f"%{username}%"))
+    query = select(User)
+    if username:
+        query.where(User.username.ilike(f"%{username}%"))
     result = await session.execute(query)
     return result.scalars().all()
 

@@ -12,7 +12,6 @@ from db.database import get_session
 from crud.user_repository import (
     create_user,
     delete_user_from_db,
-    get_filtered_users,
     get_user_by_id,
     get_user_by_username,
     get_user_by_email,
@@ -53,11 +52,8 @@ async def get_all_user(
 ):
     request_user = await get_user_by_id(session, user_auth_data.id)
     permission = is_admin(request_user)
-    if filter_username:
-        users = await get_filtered_users(session, filter_username)
-        return paginate(users)
     if permission:
-        users = await get_users(session)
+        users = await get_users(session, filter_username)
         return paginate(users)
 
 
